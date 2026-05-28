@@ -1,0 +1,46 @@
+{
+  "Acute Coronary Syndrome": [
+    "acs",
+    "acute coronary syndrome",
+    "acute coronary syndrome / myocardial ischemia",
+    "myocardial ischemia",
+    "unstable angina"
+  ],
+
+  "Angina": [
+    "angina",
+    "stable angina",
+    "exertional angina",
+    "stable angina (reduced blood flow to the heart during exertion)",
+    "stable angina (exertional chest pain due to reduced blood flow to the heart)",
+    "cardiac ischemia from exertion",
+    "exertional cardiac ischemia"
+  ],
+
+  "Myocardial Infarction": [
+    "heart attack",
+    "myocardial infarction"
+  ],
+
+  "GERD": [
+    "acid reflux",
+    "gerd",
+    "gastroesophageal reflux disease",
+    "gastroesophageal reflux disease (gerd)"
+  ],
+
+  "Pulmonary Embolism": [
+    "pe",
+    "pulmonary embolism"
+  ],
+
+  "COPD": [
+    "copd",
+    "chronic obstructive pulmonary disease"
+  ],
+
+  "COPD Exacerbation": [
+    "copd exacerbation",
+    "chronic obstructive pulmonary disease (copd) exacerbation"
+  ]
+}

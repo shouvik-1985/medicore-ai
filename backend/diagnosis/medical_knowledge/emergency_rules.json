@@ -1,0 +1,68 @@
+{
+  "cardiac_emergency": {
+    "symptoms": [
+      "chest pain",
+      "chest tightness",
+      "chest pressure",
+      "chest discomfort",
+      "heavy chest"
+    ],
+    "triggers": [
+      "walking",
+      "exercise",
+      "running",
+      "climbing stairs",
+      "activity"
+    ],
+    "risk_score": 40,
+    "alert": "Exertional chest symptoms detected"
+  },
+
+  "breathing_emergency": {
+    "symptoms": [
+      "shortness of breath",
+      "breathing difficulty",
+      "difficulty breathing",
+      "trouble breathing",
+      "breathlessness",
+      "wheezing"
+    ],
+    "risk_score": 25,
+    "alert": "Breathing difficulty present"
+  },
+
+  "stroke_warning": {
+    "symptoms": [
+      "slurred speech",
+      "facial drooping",
+      "facial weakness",
+      "arm weakness",
+      "one sided weakness",
+      "confusion"
+    ],
+    "risk_score": 60,
+    "alert": "Stroke warning signs detected"
+  },
+
+  "infection": {
+    "symptoms": [
+      "high fever",
+      "fever",
+      "persistent fever"
+    ],
+    "risk_score": 20,
+    "alert": "Infection symptoms present"
+  },
+
+  "swallowing_issue": {
+    "symptoms": [
+      "burning sensation in throat when swallowing food",
+      "pain when swallowing",
+      "difficulty swallowing",
+      "trouble swallowing",
+      "painful swallowing"
+    ],
+    "risk_score": 15,
+    "alert": "Swallowing discomfort detected"
+  }
+}

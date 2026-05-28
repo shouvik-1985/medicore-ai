@@ -1,0 +1,98 @@
+{
+  "respiratory": {
+    "canonical": [
+      "shortness of breath",
+      "breathing difficulty",
+      "wheezing",
+      "cough"
+    ],
+    "aliases": {
+      "shortness of breath": [
+        "out of breath",
+        "can't breathe properly",
+        "breathing hard",
+        "breathlessness",
+        "trouble breathing",
+        "difficulty breathing",
+        "shortness of breath on exertion",
+        "exertional shortness of breath",
+        "out of breath while climbing stairs",
+        "breathlessness on exertion",
+        "breathing difficulty while walking"
+            ],
+
+      "cough": [
+        "coughing",
+        "persistent cough",
+        "dry cough",
+        "wet cough"
+      ]
+    }
+  },
+
+  "cardiac": {
+    "canonical": [
+      "chest pain",
+      "palpitations",
+      "chest tightness"
+    ],
+    "aliases": {
+      "chest pain": [
+        "heavy chest",
+        "pressure in chest",
+        "tight chest",
+        "chest discomfort",
+        "squeezing chest",
+        "chest heaviness",
+        "heavy feeling in chest",
+        "heaviness in chest",
+        "pressure chest"
+      ],
+
+      "palpitations": [
+        "heart racing",
+        "heart pounding",
+        "fast heartbeat"
+      ]
+    }
+  },
+
+  "neurological": {
+    "canonical": [
+      "slurred speech",
+      "facial drooping",
+      "confusion"
+    ],
+    "aliases": {
+      "slurred speech": [
+        "speech problem",
+        "can't talk properly"
+      ],
+
+      "confusion": [
+        "mental confusion",
+        "disorientation"
+      ]
+    }
+  },
+
+  "gastrointestinal": {
+    "canonical": [
+      "difficulty swallowing",
+      "acid reflux"
+    ],
+    "aliases": {
+      "difficulty swallowing": [
+        "pain when swallowing",
+        "trouble swallowing",
+        "painful swallowing"
+      ],
+
+      "acid reflux": [
+        "burning throat",
+        "throat burning",
+        "heartburn"
+      ]
+    }
+  }
+}
