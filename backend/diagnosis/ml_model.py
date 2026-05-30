@@ -6,7 +6,7 @@ import faiss
 import joblib
 import numpy as np
 from records.models import DiagnosisRecord
-from sentence_transformers import SentenceTransformer
+#from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.multiclass import OneVsRestClassifier
@@ -459,13 +459,25 @@ EMB_MODEL = None
 
 def get_embedding_model():
     global EMB_MODEL
+
     if EMB_MODEL is None:
-        os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
-        warnings.filterwarnings("ignore", module="transformers")
+        from sentence_transformers import SentenceTransformer
+
+        os.environ.setdefault(
+            "TRANSFORMERS_VERBOSITY",
+            "error"
+        )
+
+        warnings.filterwarnings(
+            "ignore",
+            module="transformers"
+        )
+
         EMB_MODEL = SentenceTransformer(
             "all-MiniLM-L6-v2",
             token=os.getenv("HF_TOKEN"),
         )
+
     return EMB_MODEL
 
 
