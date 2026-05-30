@@ -6,7 +6,7 @@ from pathlib import Path
 from records.models import DiagnosisRecord
 from .ml_model import build_faiss_index, predict_disease, predict_clinical, retrieve_similar, train_clinical_model, build_prediction_text
 from .medical_validator import validate_output
-from .dl_model import predict_dl
+#from .dl_model import predict_dl
 from .multimodal import build_multimodal_case_payload, collapse_whitespace, message_text
 from .language_utils import (
     build_localized_modality_labels,
@@ -872,7 +872,8 @@ class DiagnosisView(APIView):
                 extracted_features,
                 rule_result["urgency"]
             )
-
+            from .dl_model import predict_dl
+            
             dl_output = predict_dl(
                 case_text,
                 extracted_features,
