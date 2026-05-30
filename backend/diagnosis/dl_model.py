@@ -172,8 +172,17 @@ def predict_legacy_dl(symptoms, vectorizer, labels):
 
     return {"conditions": [str(labels[best_index])], "tests": [], "meds": []}
 
-
+RENDER_ENV = os.getenv("RENDER") == "true"
 def predict_dl(symptoms,medical_features=None, urgency=""):
+
+    if RENDER_ENV:
+        print("Skipping DL model on Render free tier")
+        return {
+            "conditions": [],
+            "tests": [],
+            "meds": []
+        }
+    
     try:
         if not all(os.path.exists(path) for path in (MODEL_PATH, VEC_PATH, LABELS_PATH)):
             return {"conditions": [], "tests": [], "meds": []}

@@ -458,6 +458,10 @@ EMB_MODEL = None
 
 
 def get_embedding_model():
+    if os.getenv("RENDER") == "true":
+        print("Skipping sentence transformer on Render")
+        return None
+    
     global EMB_MODEL
 
     if EMB_MODEL is None:
@@ -521,6 +525,9 @@ def retrieve_similar(symptoms,  medical_features=None, urgency="", k=3):
             faiss_last_loaded = current_time
         index, metadata = faiss_cache
 
+        if model is None:
+            return [], [], []
+        
         model = get_embedding_model()
         prediction_text = (
             build_prediction_text(
