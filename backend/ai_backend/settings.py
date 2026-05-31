@@ -147,6 +147,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://medicore-ai-six.vercel.app",
 ]
 
+CORS_ALLOW_CREDENTIALS = True
+
 if os.getenv("FRONTEND_URL"):
     CORS_ALLOWED_ORIGINS.append(
         os.getenv("FRONTEND_URL")
