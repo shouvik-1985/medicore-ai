@@ -12,6 +12,7 @@ import {
 import { Eye, EyeOff, Mail, Lock, User, Phone, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
+import { API_URL } from "@/lib/api";
 
 interface RegisterFormProps {
   onRegister: () => void;
@@ -85,7 +86,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     }
 
     await axios.post(
-      "http://localhost:8000/api/auth/register/",
+      `${API_URL}/api/auth/register/`,
       formDataToSend,
       {
         headers: {

@@ -7,6 +7,7 @@ import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { GoogleLogin } from "@react-oauth/google";
 import axios from "axios";
+import { API_URL } from "@/lib/api";
 
 interface LoginFormProps {
   onLogin: (role: "patient" | "doctor" | "admin") => void;
@@ -26,7 +27,7 @@ const handleSubmit = async (e: React.FormEvent) => {
   // 🔥 ADMIN LOGIN (ADD THIS BLOCK)
 
   try {
-    const res = await axios.post("http://localhost:8000/api/auth/login/", {
+    const res = await axios.post(`${API_URL}/api/auth/login/`, {
       username: formData.email,
       password: formData.password,
     });
@@ -63,7 +64,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     try {
       const response = await axios.post<GoogleLoginResponse>(
-        "http://localhost:8000/api/auth/google-login/",
+        `${API_URL}/api/auth/google-login/`,
         {
           id_token: idToken,
         }
