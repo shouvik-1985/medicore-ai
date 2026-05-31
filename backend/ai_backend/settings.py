@@ -38,6 +38,7 @@ ALLOWED_HOSTS = [
     "localhost",
     "127.0.0.1",
     ".onrender.com",
+    ".vercel.app",
 ]
 
 if os.getenv("RENDER_EXTERNAL_HOSTNAME"):
@@ -143,6 +144,7 @@ CELERY_BEAT_SCHEDULE = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:8080",
+    "https://medicore-ai-six.vercel.app",
 ]
 
 if os.getenv("FRONTEND_URL"):
@@ -150,7 +152,8 @@ if os.getenv("FRONTEND_URL"):
         os.getenv("FRONTEND_URL")
     )
 
-CSRF_TRUSTED_ORIGINS = []
+CSRF_TRUSTED_ORIGINS = ["https://medicore-ai-six.vercel.app",
+     ]
 
 if os.getenv("FRONTEND_URL"):
     CSRF_TRUSTED_ORIGINS.append(
