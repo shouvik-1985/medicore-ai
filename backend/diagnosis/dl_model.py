@@ -24,6 +24,10 @@ def load_torch():
 
     return torch, nn
 
+class LazyModule:
+    def __call__(self, *args, **kwargs):
+        return self.forward(*args, **kwargs)
+
 MODEL_PATH = "diagnosis/dl_model.pt"
 VEC_PATH = "diagnosis/dl_vectorizer.pkl"
 LABELS_PATH = "diagnosis/labels.pkl"
@@ -32,7 +36,7 @@ DL_CONDITION_THRESHOLD = 0.6
 DL_CLINICAL_THRESHOLD = 0.45
 
 
-class DiseaseNet(nn.Module):
+class DiseaseNet(LazyModule):
     def __init__(self, input_size, num_classes):
         torch, nn = load_torch()
         self.fc1 = nn.Linear(input_size, 128)
@@ -44,9 +48,31 @@ class DiseaseNet(nn.Module):
         x = self.relu(self.fc1(x))
         x = self.relu(self.fc2(x))
         return self.fc3(x)
+    
+    def parameters(self):
+        params = []
+        params.extend(self.fc1.parameters())
+        params.extend(self.fc2.parameters())
+        params.extend(self.fc3.parameters())
+        return params
+
+    def state_dict(self):
+        return {
+            "fc1": self.fc1.state_dict(),
+            "fc2": self.fc2.state_dict(),
+            "fc3": self.fc3.state_dict(),
+        }
+
+    def load_state_dict(self, state):
+        self.fc1.load_state_dict(state["fc1"])
+        self.fc2.load_state_dict(state["fc2"])
+        self.fc3.load_state_dict(state["fc3"])
+
+    def eval(self):
+        return self
 
 
-class ClinicalNet(nn.Module):
+class ClinicalNet(LazyModule):
     def __init__(self, input_size, head_sizes):
         torch, nn = load_torch()
         self.fc1 = nn.Linear(input_size, 128)
@@ -62,6 +88,38 @@ class ClinicalNet(nn.Module):
         x = self.relu(self.fc1(x))
         x = self.relu(self.fc2(x))
         return {name: head(x) for name, head in self.heads.items()}
+    
+    def parameters(self):
+        params = []
+        params.extend(self.fc1.parameters())
+        params.extend(self.fc2.parameters())
+
+        for head in self.heads.values():
+            params.extend(head.parameters())
+
+        return params
+
+    def state_dict(self):
+        return {
+            "fc1": self.fc1.state_dict(),
+            "fc2": self.fc2.state_dict(),
+            "heads": {
+                k: v.state_dict()
+                for k, v in self.heads.items()
+            }
+        }
+
+    def load_state_dict(self, state):
+        self.fc1.load_state_dict(state["fc1"])
+        self.fc2.load_state_dict(state["fc2"])
+
+        for k in self.heads:
+            self.heads[k].load_state_dict(
+                state["heads"][k]
+            )
+
+    def eval(self):
+        return self
 
 
 def remove_model_file(path):
