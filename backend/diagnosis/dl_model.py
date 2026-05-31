@@ -2,14 +2,27 @@ import os
 
 import joblib
 import numpy as np
-import torch
-import torch.nn as nn
+# import torch
+# import torch.nn as nn
 # import torch.optim as optim
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
 
 from .ml_model import clean_labels, confirmed_records, MIN_TRAINING_CASES, record_training_text,  build_prediction_text
+torch = None
+nn = None
 
+def load_torch():
+    global torch, nn
+
+    if torch is None:
+        import torch as torch_module
+        import torch.nn as nn_module
+
+        torch = torch_module
+        nn = nn_module
+
+    return torch, nn
 
 MODEL_PATH = "diagnosis/dl_model.pt"
 VEC_PATH = "diagnosis/dl_vectorizer.pkl"
@@ -18,7 +31,7 @@ LABELS_PATH = "diagnosis/labels.pkl"
 DL_CONDITION_THRESHOLD = 0.6
 DL_CLINICAL_THRESHOLD = 0.45
 
-
+load_torch()
 class DiseaseNet(nn.Module):
     def __init__(self, input_size, num_classes):
         super().__init__()
@@ -32,7 +45,7 @@ class DiseaseNet(nn.Module):
         x = self.relu(self.fc2(x))
         return self.fc3(x)
 
-
+load_torch()
 class ClinicalNet(nn.Module):
     def __init__(self, input_size, head_sizes):
         super().__init__()
@@ -74,6 +87,7 @@ def build_label_rows(records):
 
 
 def fit_binarizer(rows):
+    torch, _ = load_torch()
     labels = sorted({label for row in rows for label in row})
     if not labels:
         return None, None
@@ -84,6 +98,7 @@ def fit_binarizer(rows):
 
 
 def train_dl_model():
+    torch, nn = load_torch()
     import torch.optim as optim
     records = list(confirmed_records())
 
@@ -156,6 +171,7 @@ def top_multilabel_predictions(scores, labels, threshold, top_k):
 
 
 def predict_legacy_dl(symptoms, vectorizer, labels):
+    torch, nn = load_torch()
     X = vectorizer.transform([symptoms]).toarray()
     X = torch.tensor(X, dtype=torch.float32)
 
@@ -175,6 +191,7 @@ def predict_legacy_dl(symptoms, vectorizer, labels):
 
 RENDER_ENV = os.getenv("RENDER") == "true"
 def predict_dl(symptoms,medical_features=None, urgency=""):
+    torch, nn = load_torch()
     if RENDER_ENV:
         print("Skipping DL model on Render free tier")
         return {
