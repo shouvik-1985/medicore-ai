@@ -524,11 +524,10 @@ def retrieve_similar(symptoms,  medical_features=None, urgency="", k=3):
                 faiss_cache = pickle.load(file)
             faiss_last_loaded = current_time
         index, metadata = faiss_cache
-
-        if model is None:
-            return [], [], []
         
         model = get_embedding_model()
+        if model is None:
+            return [], [], []
         prediction_text = (
             build_prediction_text(
                 symptoms,
