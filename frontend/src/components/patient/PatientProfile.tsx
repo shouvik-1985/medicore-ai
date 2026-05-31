@@ -34,6 +34,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import axios from "axios";
+import { API_URL } from "@/lib/api";
 
 interface PatientData {
   name: string;
@@ -98,7 +99,7 @@ const PatientProfile = ({ patientData, onProfileUpdate }: PatientProfileProps) =
       emergency_contacts: emergencyContacts,
     };
 
-    const response = await axios.put("http://localhost:8000/api/auth/profile/", updatedData, {
+    const response = await axios.put(`${API_URL}/api/auth/profile/`, updatedData, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",

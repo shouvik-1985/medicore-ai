@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { API_URL } from "@/lib/api";
 import { Separator } from "@/components/ui/separator";
 import {
   Select,
@@ -226,7 +227,7 @@ const SymptomAnalyzer = () => {
     setIsAnalyzing(true);
     try {
       const response = await axios.post<AnalysisResult>(
-        "http://localhost:8000/api/diagnosis/analyze/",
+        `${API_URL}/api/diagnosis/analyze/`,
         formData,
         {
           headers: {
@@ -257,7 +258,7 @@ const SymptomAnalyzer = () => {
 
     try {
       const response = await axios.post<Blob>(
-        "http://localhost:8000/api/diagnosis/generate-pdf/",
+        `${API_URL}/api/diagnosis/generate-pdf/`,
         {
           ...analysisResult,
           symptoms: analysisResult.input_summary || symptoms,

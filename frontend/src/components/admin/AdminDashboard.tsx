@@ -497,7 +497,7 @@ const AdminDashboard = ({ onLogout }: AdminDashboardProps) => {
                       selectedDoctor.documents.map((doc: any, i: number) => (
                         <a
                           key={i}
-                          href={`http://localhost:8000${doc.file}`}
+                          href={`${API_URL}$${doc.file}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="block rounded-md border border-cyan-100 px-3 py-2 text-sm text-cyan-700 hover:bg-cyan-50"
