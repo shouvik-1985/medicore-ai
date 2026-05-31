@@ -31,10 +31,10 @@ LABELS_PATH = "diagnosis/labels.pkl"
 DL_CONDITION_THRESHOLD = 0.6
 DL_CLINICAL_THRESHOLD = 0.45
 
-load_torch()
+
 class DiseaseNet(nn.Module):
     def __init__(self, input_size, num_classes):
-        super().__init__()
+        torch, nn = load_torch()
         self.fc1 = nn.Linear(input_size, 128)
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(128, 64)
@@ -45,10 +45,10 @@ class DiseaseNet(nn.Module):
         x = self.relu(self.fc2(x))
         return self.fc3(x)
 
-load_torch()
+
 class ClinicalNet(nn.Module):
     def __init__(self, input_size, head_sizes):
-        super().__init__()
+        torch, nn = load_torch()
         self.fc1 = nn.Linear(input_size, 128)
         self.fc2 = nn.Linear(128, 64)
         self.relu = nn.ReLU()
