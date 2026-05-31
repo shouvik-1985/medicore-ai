@@ -39,6 +39,7 @@ ALLOWED_HOSTS = [
     "127.0.0.1",
     ".onrender.com",
     ".vercel.app",
+    "medicore-backend-rw6m.onrender.com",
 ]
 
 if os.getenv("RENDER_EXTERNAL_HOSTNAME"):
