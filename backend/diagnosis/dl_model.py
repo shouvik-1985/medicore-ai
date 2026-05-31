@@ -4,7 +4,7 @@ import joblib
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.optim as optim
+# import torch.optim as optim
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.preprocessing import MultiLabelBinarizer
 
@@ -84,6 +84,7 @@ def fit_binarizer(rows):
 
 
 def train_dl_model():
+    import torch.optim as optim
     records = list(confirmed_records())
 
     if len(records) < MIN_TRAINING_CASES:
@@ -174,7 +175,6 @@ def predict_legacy_dl(symptoms, vectorizer, labels):
 
 RENDER_ENV = os.getenv("RENDER") == "true"
 def predict_dl(symptoms,medical_features=None, urgency=""):
-
     if RENDER_ENV:
         print("Skipping DL model on Render free tier")
         return {
