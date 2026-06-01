@@ -1,11 +1,13 @@
 import json
+import os
 from openai import OpenAI
 from django.conf import settings
-from diagnosis.medical.symptom_ontology import (
+from medical.symptom_ontology import (
     normalize_symptoms
 )
-
-client = OpenAI(api_key=settings.OPENAI_API_KEY)
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
 
 
 def extract_medical_features(symptoms_text):

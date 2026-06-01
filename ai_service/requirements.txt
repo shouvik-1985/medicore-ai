@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+torch
+scikit-learn
+numpy
+pandas
+faiss-cpu
+sentence-transformers
+joblib
+openai
+python-dotenv
+requests
+pydantic

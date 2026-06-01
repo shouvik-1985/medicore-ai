@@ -1,8 +1,8 @@
 from celery import shared_task
 from django.core.mail import send_mail
 from django.conf import settings
-from diagnosis.ml_model import train_clinical_model, build_faiss_index, train_model
-from diagnosis.dl_model import train_dl_model
+# from diagnosis.ml_model import train_clinical_model, build_faiss_index, train_model
+# from diagnosis.dl_model import train_dl_model
 from django.utils import timezone
 from auth_app.models import Appointment
 from django.utils.timezone import localdate
@@ -81,10 +81,10 @@ def retrain_models_task():
     print("🔥 Background training started...")
 
     try:
-        train_model()
-        train_dl_model()
-        train_clinical_model()
-        build_faiss_index()
+        import requests
+        requests.post(
+            "http://localhost:8001/train"
+        )
 
         print("✅ Background training completed")
 

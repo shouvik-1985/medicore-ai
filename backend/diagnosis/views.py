@@ -4,10 +4,10 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticate
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from pathlib import Path
 from records.models import DiagnosisRecord
-from .ml_model import build_faiss_index, predict_disease, predict_clinical, retrieve_similar, train_clinical_model, build_prediction_text
+#from .ml_model import build_faiss_index, predict_disease, predict_clinical, retrieve_similar, train_clinical_model, build_prediction_text
 from .medical_validator import validate_output
 #from .dl_model import predict_dl
-from .multimodal import build_multimodal_case_payload, collapse_whitespace, message_text
+from multimodal import build_multimodal_case_payload, collapse_whitespace, message_text
 from .language_utils import (
     build_localized_modality_labels,
     build_localized_ui_copy,
@@ -24,29 +24,33 @@ import requests
 import time
 import unicodedata
 from openai import OpenAI
-from diagnosis.medical.medical_extractor import (
-    extract_medical_features
-)
+# from ai_service.medical.medical_extractor import (
+#     extract_medical_features
+# )
 
-from diagnosis.medical.rule_engine import (
-    medical_rule_engine
-)
+# from ai_service.medical.rule_engine import (
+#     medical_rule_engine
+# )
 
-from diagnosis.medical.confidence_engine import (
+from medical.confidence_engine import (
     calculate_confidence
 )
 
-from diagnosis.medical.medical_mapper import (
+from medical.medical_mapper import (
     normalize_conditions
 )
 
-from diagnosis.medical.reasoning_engine import (
+from medical.reasoning_engine import (
     rerank_conditions
 )
 from django.core.cache import cache
 
 # ✅ GEMINI SDK
 from google import genai
+
+AI_SERVICE_URL = (
+    settings.AI_SERVICE_URL
+)
 
 openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
 client = genai.Client(
@@ -698,6 +702,34 @@ def apply_localized_output(final_output, language_code, role, input_summary):
     final_output["similar_cases"] = similar_cases
     return final_output
 # ================= MAIN VIEW ================= #
+def call_ai_service(
+    case_text,
+    history_text,
+    role,
+    records
+):
+    try:
+        response = requests.post(
+            f"{AI_SERVICE_URL}/predict",
+            json={
+                "symptoms": case_text,
+                "history": history_text,
+                "role": role,
+            },
+            timeout=120
+        )
+
+        response.raise_for_status()
+
+        return response.json()
+
+    except Exception as e:
+        print("AI SERVICE ERROR:", e)
+
+        return {
+            "error":
+            "AI service unavailable"
+        }
 
 class DiagnosisView(APIView):
     permission_classes = [IsAuthenticatedOrReadOnly]
@@ -736,12 +768,70 @@ class DiagnosisView(APIView):
         # 🧠 Medical Intelligence Layer
         # =====================================
 
-        extracted_features = extract_medical_features(
-            case_text
+        history_text = ""
+        role = "patient"
+
+        user = (
+            request.user
+            if request.user.is_authenticated
+            else None
         )
 
-        rule_result = medical_rule_engine(
-            extracted_features
+        if user:
+            role = user.userprofile.role
+
+        if user and role == "patient":
+            history_text = (
+                build_patient_history_text(
+                    user,
+                    case_text
+                )
+            )
+
+        records = list(
+            DiagnosisRecord.objects.filter(
+                doctor_confirmed=True,
+                doctor_final_diagnosis__isnull=False
+            )
+            .exclude(doctor_final_diagnosis="")
+            .exclude(symptoms="")
+            .values(
+                "symptoms",
+                "doctor_final_diagnosis",
+                "doctor_confirmed",
+                "recommended_tests",
+                "recommended_medications",
+                "medical_features",
+                "urgency",
+                "analysis_context"
+            )
+        )
+
+        ai_response = call_ai_service(
+            case_text,
+            history_text,
+            role,
+            records
+        )
+
+        if ai_response.get("error"):
+            return Response(
+                ai_response,
+                status=503
+            )
+
+        extracted_features = (
+            ai_response.get(
+                "extracted_features",
+                {}
+            )
+        )
+
+        rule_result = (
+            ai_response.get(
+                "rule_result",
+                {}
+            )
         )
 
         print(
@@ -867,24 +957,39 @@ class DiagnosisView(APIView):
 
             # ================= 🔥 HYBRID CONDITION FUSION ================= #
 
-            ml_output = predict_clinical(
-                case_text,
-                extracted_features,
-                rule_result["urgency"]
-            )
-            from .dl_model import predict_dl
-            
-            dl_output = predict_dl(
-                case_text,
-                extracted_features,
-                rule_result["urgency"]
+            ml_output = ai_response.get(
+                "ml_output",
+                {}
             )
 
-            _, _, faiss_cases = retrieve_similar(
-                case_text,
-                extracted_features,
-                rule_result["urgency"]
+            dl_output = ai_response.get(
+                "dl_output",
+                {}
             )
+
+            faiss_cases = ai_response.get(
+                "faiss_cases",
+                []
+            )
+
+            ml_conditions = (
+                ml_output.get(
+                    "conditions",
+                    []
+                )
+            )
+
+            dl_conditions = (
+                dl_output.get(
+                    "conditions",
+                    []
+                )
+            )
+
+            faiss_conditions = [
+                c["condition"]
+                for c in faiss_cases
+            ]
 
             ml_conditions = ml_output.get("conditions", [])
             dl_conditions = dl_output.get("conditions", [])
@@ -1292,40 +1397,49 @@ class DiagnosisView(APIView):
 
 
                 # 🔥 GET ML + FAISS
-                clinical_support = predict_clinical(
-                    case_text,
-                    extracted_features,
-                    rule_result["urgency"]
+                clinical_support = (
+                    ai_response.get(
+                        "clinical_support",
+                        {}
+                    )
                 )
 
-                if not clinical_support["conditions"]:
-                    print("⚠️ ML model not trained yet")
-
-                dl_support = predict_dl(
-                    case_text,
-                    extracted_features,
-                    rule_result["urgency"]
+                ml_tests = clinical_support.get(
+                    "tests",
+                    []
                 )
 
-                ml_conditions = (
-                    clinical_support.get("conditions", []) +
-                    dl_support.get("conditions", [])
+                ml_meds = clinical_support.get(
+                    "meds",
+                    []
                 )
 
-                ml_tests = (
-                    clinical_support.get("tests", []) +
-                    dl_support.get("tests", [])
+                dl_support = (
+                    ai_response.get(
+                        "dl_support",
+                        {}
+                    )
                 )
 
-                ml_meds = (
-                    clinical_support.get("meds", []) +
-                    dl_support.get("meds", [])
+                similar_cases = (
+                    ai_response.get(
+                        "similar_cases",
+                        []
+                    )
                 )
 
-                sim_tests, sim_meds, similar_cases = retrieve_similar(
-                    case_text,
-                    extracted_features,
-                    rule_result["urgency"]
+                sim_tests = (
+                    ai_response.get(
+                        "sim_tests",
+                        []
+                    )
+                )
+
+                sim_meds = (
+                    ai_response.get(
+                        "sim_meds",
+                        []
+                    )
                 )
 
                 # 🔥 WEIGHTED MERGE FUNCTION
@@ -1434,11 +1548,9 @@ class DiagnosisView(APIView):
                             )
 
             # ML prediction
-            ml_prediction = predict_disease(
-                build_prediction_text(
-                    case_text,
-                    extracted_features,
-                    rule_result["urgency"]
+            ml_prediction = (
+                ai_response.get(
+                    "ml_prediction"
                 )
             )
             current_conditions = final_output.get("possible_conditions", [])

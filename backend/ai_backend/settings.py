@@ -7,6 +7,12 @@ import dj_database_url
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
+AI_SERVICE_URL = os.getenv(
+    "AI_SERVICE_URL",
+    default=
+    "http://localhost:8001"
+)
+
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 RAZORPAYX_ACCOUNT_NUMBER = "41252788350"
