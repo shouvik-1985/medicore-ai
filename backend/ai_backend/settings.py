@@ -1,10 +1,15 @@
 from pathlib import Path
 import os
+import sys
 from datetime import timedelta
 from dotenv import load_dotenv
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 🔥 ADD THIS
+sys.path.insert(0, str(BASE_DIR.parent))
+
 load_dotenv(BASE_DIR / ".env")
 
 AI_SERVICE_URL = os.getenv(
@@ -156,13 +161,29 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_CREDENTIALS = True
 
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
+
 if os.getenv("FRONTEND_URL"):
     CORS_ALLOWED_ORIGINS.append(
         os.getenv("FRONTEND_URL")
     )
 
-CSRF_TRUSTED_ORIGINS = ["https://medicore-ai-six.vercel.app",
-     ]
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:5173",
+    "http://localhost:8080",
+    "https://medicore-ai-six.vercel.app",
+    "https://medicore-backend-rw6m.onrender.com",
+]
 
 if os.getenv("FRONTEND_URL"):
     CSRF_TRUSTED_ORIGINS.append(

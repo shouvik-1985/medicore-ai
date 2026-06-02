@@ -7,7 +7,7 @@ from records.models import DiagnosisRecord
 #from .ml_model import build_faiss_index, predict_disease, predict_clinical, retrieve_similar, train_clinical_model, build_prediction_text
 from .medical_validator import validate_output
 #from .dl_model import predict_dl
-from multimodal import build_multimodal_case_payload, collapse_whitespace, message_text
+from ai_service.multimodal import build_multimodal_case_payload, collapse_whitespace, message_text
 from .language_utils import (
     build_localized_modality_labels,
     build_localized_ui_copy,
@@ -32,15 +32,15 @@ from openai import OpenAI
 #     medical_rule_engine
 # )
 
-from medical.confidence_engine import (
+from ai_service.medical.confidence_engine import (
     calculate_confidence
 )
 
-from medical.medical_mapper import (
+from ai_service.medical.medical_mapper import (
     normalize_conditions
 )
 
-from medical.reasoning_engine import (
+from ai_service.medical.reasoning_engine import (
     rerank_conditions
 )
 from django.core.cache import cache

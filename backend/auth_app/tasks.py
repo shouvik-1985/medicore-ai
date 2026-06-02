@@ -83,7 +83,7 @@ def retrain_models_task():
     try:
         import requests
         requests.post(
-            "http://localhost:8001/train"
+            f"{settings.AI_SERVICE_URL}/train"
         )
 
         print("✅ Background training completed")
