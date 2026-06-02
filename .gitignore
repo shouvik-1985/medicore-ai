@@ -21,6 +21,7 @@ backend/.env
 
 # Frontend secrets
 frontend/.env
+ai_service/.env
 
 # ======================
 # Frontend / Node
