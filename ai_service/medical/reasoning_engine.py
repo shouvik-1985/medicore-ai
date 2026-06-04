@@ -18,7 +18,8 @@ DISEASE_PATTERNS = {
         "slurred speech",
         "weakness",
         "facial drooping",
-        "vision loss"
+        "vision loss",
+        "numbness"
     ],
 
     "acute coronary syndrome": [
@@ -27,6 +28,13 @@ DISEASE_PATTERNS = {
         "jaw pain",
         "arm pain",
         "shortness of breath"
+    ],
+
+    "angina": [
+        "chest pain",
+        "walking",
+        "exercise",
+        "climbing stairs"
     ],
 
     "pneumonia": [
@@ -39,6 +47,24 @@ DISEASE_PATTERNS = {
         "headache",
         "nausea",
         "light sensitivity"
+    ],
+
+    "gastritis": [
+        "stomach pain",
+        "vomiting",
+        "burning sensation"
+    ],
+
+    "appendicitis": [
+        "abdominal pain",
+        "fever",
+        "vomiting"
+    ],
+
+    "asthma": [
+        "shortness of breath",
+        "wheezing",
+        "chest tightness"
     ]
 }
 
@@ -63,6 +89,20 @@ def rerank_conditions(
             []
         )
     ]
+
+    secondary_symptoms = [
+        s.lower()
+        for s in medical_features.get(
+            "secondary_symptoms",
+            []
+        )
+    ]
+
+    all_symptoms = (
+        symptoms
+        +
+        secondary_symptoms
+    )
 
     triggers = [
         t.lower()
@@ -101,7 +141,7 @@ def rerank_conditions(
                     1
                     for symptom
                     in expected_symptoms
-                    if symptom in symptoms
+                    if symptom in all_symptoms
                 )
 
                 mismatch = (
@@ -109,7 +149,7 @@ def rerank_conditions(
                     - matched
                 )
 
-                score += matched * 5
+                score += matched * 6
                 score -= mismatch * 2
 
         # ==========================
@@ -195,7 +235,42 @@ def rerank_conditions(
                 # Mild exertional symptoms only
                 else:
                     score -= 5
+                
+        # ==================================
+        # Contradiction penalties
+        # ==================================
 
+        if "stroke" in name:
+
+            stroke_symptoms = [
+                "slurred speech",
+                "weakness",
+                "facial drooping",
+                "vision loss"
+            ]
+
+            if not any(
+                symptom in all_symptoms
+                for symptom
+                in stroke_symptoms
+            ):
+                score -= 20
+
+
+        if "acute coronary" in name:
+
+            cardiac_symptoms = [
+                "chest pain",
+                "jaw pain",
+                "arm pain"
+            ]
+
+            if not any(
+                symptom in all_symptoms
+                for symptom
+                in cardiac_symptoms
+            ):
+                score -= 15
         # ==========================
         # High-risk escalation
         # ==========================
