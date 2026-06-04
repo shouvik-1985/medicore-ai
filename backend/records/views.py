@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from django.core.cache import cache
+#from django.core.cache import cache
 
 from auth_app.tasks import retrain_models_task
 from diagnosis.language_utils import get_language_config, translate_text_blocks
@@ -14,39 +14,13 @@ class RecordListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        user = self.request.user
-
-        cache_key = (
-            f"user_records_{user.id}"
-        )
-
-        records = cache.get(
-            cache_key
-        )
-
-        if records is None:
-
-            records = list(
-                DiagnosisRecord.objects.filter(
-                    user=user
-                ).order_by("-id")
-            )
-
-            cache.set(
-                cache_key,
-                records,
-                timeout=300
-            )  # 5 min cache
-
-        return records
+        return DiagnosisRecord.objects.filter(
+            user=self.request.user
+        ).order_by("-id")
 
     def perform_create(self, serializer):
         serializer.save(
             user=self.request.user
-        )
-
-        cache.delete(
-            f"user_records_{self.request.user.id}"
         )
 
 
