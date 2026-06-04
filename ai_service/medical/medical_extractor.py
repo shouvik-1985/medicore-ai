@@ -1,7 +1,7 @@
 import json
 import os
 from openai import OpenAI
-from django.conf import settings
+#from django.conf import settings
 from medical.symptom_ontology import (
     normalize_symptoms
 )

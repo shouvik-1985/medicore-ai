@@ -7,10 +7,10 @@ import zipfile
 import xml.etree.ElementTree as ET
 from typing import Dict, List
 
-from django.core.files.uploadedfile import UploadedFile
-from django.conf import settings
+from typing import Any
 from openai import OpenAI
-
+from dotenv import load_dotenv
+load_dotenv()
 try:
     import cv2  # type: ignore
 except Exception:  # pragma: no cover - optional dependency
@@ -22,7 +22,9 @@ except Exception:  # pragma: no cover - optional dependency
     DocxDocument = None
 
 
-openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+openai_client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY")
+)
 
 MAX_UPLOAD_BYTES = 25 * 1024 * 1024
 IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
@@ -47,14 +49,14 @@ def truncate_text(value: str, limit: int = 3000) -> str:
     return text[: limit - 3].rstrip() + "..."
 
 
-def read_upload_bytes(uploaded_file: UploadedFile) -> bytes:
+def read_upload_bytes(uploaded_file: Any) -> bytes:
     uploaded_file.seek(0)
     data = uploaded_file.read()
     uploaded_file.seek(0)
     return data
 
 
-def detect_media_type(uploaded_file: UploadedFile) -> str:
+def detect_media_type(uploaded_file: Any) -> str:
     content_type = str(getattr(uploaded_file, "content_type", "") or "").lower()
     extension = os.path.splitext(str(uploaded_file.name or ""))[1].lower()
 
@@ -92,7 +94,7 @@ def message_text(response) -> str:
     return "\n".join(parts).strip()
 
 
-def summarize_image(uploaded_file: UploadedFile) -> str:
+def summarize_image(uploaded_file: Any) -> str:
     file_bytes = read_upload_bytes(uploaded_file)
     mime_type = str(getattr(uploaded_file, "content_type", "") or "image/jpeg")
     encoded = base64.b64encode(file_bytes).decode("utf-8")
@@ -132,7 +134,7 @@ def summarize_image(uploaded_file: UploadedFile) -> str:
     return truncate_text(message_text(response), 1200)
 
 
-def summarize_pdf(uploaded_file: UploadedFile) -> str:
+def summarize_pdf(uploaded_file: Any) -> str:
     file_bytes = read_upload_bytes(uploaded_file)
     encoded = base64.b64encode(file_bytes).decode("utf-8")
 
@@ -218,7 +220,7 @@ def extract_legacy_doc_text(file_bytes: bytes) -> str:
     return max(candidates, key=len)
 
 
-def summarize_document(uploaded_file: UploadedFile) -> str:
+def summarize_document(uploaded_file: Any) -> str:
     file_bytes = read_upload_bytes(uploaded_file)
     extension = os.path.splitext(str(uploaded_file.name or ""))[1].lower()
 
@@ -259,7 +261,7 @@ def summarize_document(uploaded_file: UploadedFile) -> str:
     return truncate_text(message_text(response), 1500)
 
 
-def transcribe_audio(uploaded_file: UploadedFile) -> str:
+def transcribe_audio(uploaded_file: Any) -> str:
     uploaded_file.seek(0)
 
     try:
@@ -278,7 +280,7 @@ def transcribe_audio(uploaded_file: UploadedFile) -> str:
     return truncate_text(getattr(response, "text", "") or "", 2000)
 
 
-def extract_video_frames(uploaded_file: UploadedFile, max_frames: int = 4) -> List[str]:
+def extract_video_frames(uploaded_file: Any, max_frames: int = 4) -> List[str]:
     if cv2 is None:
         return []
 
@@ -364,7 +366,7 @@ def summarize_video_frames(frame_payloads: List[str]) -> str:
     return truncate_text(message_text(response), 1200)
 
 
-def summarize_video(uploaded_file: UploadedFile) -> str:
+def summarize_video(uploaded_file: Any) -> str:
     transcript = ""
     transcript_error = None
 
@@ -392,7 +394,7 @@ def summarize_video(uploaded_file: UploadedFile) -> str:
     return truncate_text("\n".join(parts), 2000)
 
 
-def extract_file_context(uploaded_file: UploadedFile) -> Dict[str, str]:
+def extract_file_context(uploaded_file: Any) -> Dict[str, str]:
     media_type = detect_media_type(uploaded_file)
     file_bytes = read_upload_bytes(uploaded_file)
 
@@ -423,7 +425,7 @@ def extract_file_context(uploaded_file: UploadedFile) -> Dict[str, str]:
     }
 
 
-def build_multimodal_case_payload(symptoms: str, uploaded_files: List[UploadedFile]) -> Dict[str, object]:
+def build_multimodal_case_payload(symptoms: str, uploaded_files: List[Any]) -> Dict[str, object]:
     attachments = [extract_file_context(uploaded_file) for uploaded_file in uploaded_files]
 
     sections = []
