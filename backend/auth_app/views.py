@@ -243,26 +243,60 @@ class GoogleLoginView(APIView):
         token = request.data.get("id_token")
 
         if not token:
-            return Response({"error": "ID token is required"}, status=400)
+            return Response(
+                {"error": "ID token is required"},
+                status=400
+            )
 
         try:
-            # Validate the token using Google's API
-            idinfo = id_token.verify_oauth2_token(token, requests.Request(), settings.GOOGLE_CLIENT_ID)
+            idinfo = id_token.verify_oauth2_token(
+                token,
+                requests.Request(),
+                settings.GOOGLE_CLIENT_ID
+            )
 
             email = idinfo.get("email")
-            name = idinfo.get("name")
+            name = idinfo.get("name", "")
 
             if not email:
-                return Response({"error": "Invalid token: no email found"}, status=400)
+                return Response(
+                    {"error": "No email found"},
+                    status=400
+                )
 
-            # Create user if not exists
-            user, created = User.objects.get_or_create(username=email, defaults={"first_name": name})
+            # create user if needed
+            user, created = User.objects.get_or_create(
+                username=email,
+                defaults={
+                    "email": email,
+                    "first_name": name
+                }
+            )
 
-            # Generate JWT
+            # update existing user name
+            if not created and name and not user.first_name:
+                user.first_name = name
+                user.save()
+
+            # 🔥 CRITICAL FIX
+            profile, _ = UserProfile.objects.get_or_create(
+                user=user
+            )
+
+            # ensure google users become patients
+            if not profile.role:
+                profile.role = "patient"
+
+            profile.is_approved = True
+            profile.save()
+
             refresh = RefreshToken.for_user(user)
+
             return Response({
                 "refresh": str(refresh),
                 "access": str(refresh.access_token),
+                "role": profile.role,
+                "name": user.first_name,
                 "user": {
                     "username": user.username,
                     "name": user.first_name,
@@ -270,8 +304,17 @@ class GoogleLoginView(APIView):
             })
 
         except ValueError as e:
-            logging.error(f"Google token verification failed: {str(e)}")
-            return Response({"error": "Invalid Google token", "details": str(e)}, status=400)
+            logger.error(
+                f"Google token verification failed: {str(e)}"
+            )
+
+            return Response(
+                {
+                    "error": "Invalid Google token",
+                    "details": str(e)
+                },
+                status=400
+            )
 
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
