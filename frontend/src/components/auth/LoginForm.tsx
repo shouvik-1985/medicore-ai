@@ -38,13 +38,14 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     localStorage.setItem("access_token", access);
     localStorage.setItem("refresh_token", refresh);
-    localStorage.setItem("user_role", role); 
-
-    console.log("SAVED TOKEN:", access);
+    localStorage.setItem("user_role", role);
 
     toast.success("Login successful");
 
-    onLogin(role); // 🔥 dynamic role
+    // wait a little before dashboard mounts
+    setTimeout(() => {
+      onLogin(role);
+    }, 300);
   } catch (err: any) {
     toast.error(err.response?.data?.error || "Login failed");
   }
@@ -74,9 +75,14 @@ const handleSubmit = async (e: React.FormEvent) => {
 
       localStorage.setItem("access_token", access);
       localStorage.setItem("refresh_token", refresh);
+      localStorage.setItem("user_role", "patient");
 
       toast.success(`Welcome ${user.name || user.username}`);
-      onLogin("patient");
+
+      // prevent first-load auth race
+      setTimeout(() => {
+        onLogin("patient");
+      }, 300);
     } catch (err) {
       console.error("Google login error:", err);
       toast.error("Google login failed");

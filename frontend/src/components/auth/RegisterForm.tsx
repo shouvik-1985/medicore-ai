@@ -39,6 +39,7 @@ const RegisterForm = ({ onRegister }: RegisterFormProps) => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -60,6 +61,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     toast.error("Passwords don't match");
     return;
   }
+  setLoading(true);
 
   try {
     // 🔥 CREATE FORMDATA (IMPORTANT)
@@ -100,6 +102,8 @@ const handleSubmit = async (e: React.FormEvent) => {
   } catch (err: any) {
     console.error(err);
     toast.error(err.response?.data?.error || "Registration failed");
+  }finally{
+    setLoading(false);
   }
 };
 
@@ -307,7 +311,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         </div>
       </div>
 
-      <Button className="w-full">Create Account</Button>
+      <Button className="w-full" disabled={loading}>({loading ?  "Creating Account..." : "Create Account"})</Button>
     </form>
   );
 };
