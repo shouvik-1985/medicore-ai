@@ -60,3 +60,8 @@ backend/celerybeat-schedule*
 
 # Bun
 frontend/bun.lockb
+
+backend/diagnosis/*.pkl
+backend/diagnosis/*.pt
+backend/diagnosis/ml_model.py
+backend/diagnosis/dl_model.py

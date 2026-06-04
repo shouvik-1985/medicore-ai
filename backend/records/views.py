@@ -5,9 +5,6 @@ from django.core.cache import cache
 
 from auth_app.tasks import retrain_models_task
 from diagnosis.language_utils import get_language_config, translate_text_blocks
-from diagnosis.dl_model import train_dl_model
-from diagnosis.ml_model import build_faiss_index, train_clinical_model, train_model
-
 from .models import DiagnosisRecord
 from .serializers import DiagnosisRecordSerializer
 
