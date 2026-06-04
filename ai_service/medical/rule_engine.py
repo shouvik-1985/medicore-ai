@@ -35,6 +35,30 @@ def load_rules():
 
 MEDICAL_RULES = load_rules()
 
+RISK_WEIGHTS = {
+
+    "chest pain": 25,
+    "shortness of breath": 30,
+
+    "slurred speech": 45,
+    "facial drooping": 50,
+    "weakness": 20,
+
+    "high fever": 12,
+    "persistent fever": 15,
+
+    "collapse": 55,
+    "unconscious": 60,
+
+    "severe headache": 18,
+
+    "confusion": 22,
+    "dizziness": 10,
+
+    "vomiting": 8,
+    "sweating": 12
+}
+
 
 def medical_rule_engine(
     extracted_data
@@ -55,18 +79,55 @@ def medical_rule_engine(
         )
     ]
 
-    triggers = [
-        str(t).lower()
-        for t in extracted_data.get(
-            "trigger_factors",
+    secondary_symptoms = [
+        str(s).lower()
+        for s in extracted_data.get(
+            "secondary_symptoms",
             []
         )
     ]
+
+    all_symptoms = (
+        symptoms
+        +
+        secondary_symptoms
+    )
+
+    for symptom in all_symptoms:
+        risk_score += (
+            RISK_WEIGHTS.get(
+                symptom,
+                0
+            )
+        )
+
+        triggers = [
+            str(t).lower()
+            for t in extracted_data.get(
+                "trigger_factors",
+                []
+            )
+        ]
 
     emergency = extracted_data.get(
         "possible_emergency",
         False
     )
+    red_flags = [
+        str(r).lower()
+        for r in extracted_data.get(
+            "red_flags",
+            []
+        )
+    ]
+    for symptom in all_symptoms:
+
+        risk_score += (
+            RISK_WEIGHTS.get(
+                symptom,
+                0
+            )
+        )
 
     # ==================================
     # Dynamic medical rules
@@ -92,6 +153,18 @@ def medical_rule_engine(
                 []
             )
         ]
+
+        RISK_WEIGHTS = {
+            "chest pain": 25,
+            "shortness of breath": 30,
+            "slurred speech": 40,
+            "facial drooping": 45,
+            "weakness": 20,
+            "high fever": 12,
+            "unconscious": 60,
+            "collapse": 55,
+            "severe headache": 18,
+        }
 
         symptom_match = any(
             symptom in symptoms
@@ -125,6 +198,15 @@ def medical_rule_engine(
                 alerts.append(
                     alert
                 )
+
+    if red_flags:
+        risk_score += (
+            len(red_flags) * 10
+        )
+
+        alerts.append(
+            "Clinical red flags detected"
+        )
 
     # ==================================
     # Emergency escalation

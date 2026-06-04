@@ -12,6 +12,35 @@ EXERTION_TRIGGERS = [
     "exertion",
 ]
 
+DISEASE_PATTERNS = {
+
+    "stroke": [
+        "slurred speech",
+        "weakness",
+        "facial drooping",
+        "vision loss"
+    ],
+
+    "acute coronary syndrome": [
+        "chest pain",
+        "sweating",
+        "jaw pain",
+        "arm pain",
+        "shortness of breath"
+    ],
+
+    "pneumonia": [
+        "fever",
+        "cough",
+        "shortness of breath"
+    ],
+
+    "migraine": [
+        "headache",
+        "nausea",
+        "light sensitivity"
+    ]
+}
 
 def rerank_conditions(
     conditions,
@@ -63,6 +92,25 @@ def rerank_conditions(
         )
 
         score = confidence
+
+        for disease, expected_symptoms in DISEASE_PATTERNS.items():
+
+            if disease in name:
+
+                matched = sum(
+                    1
+                    for symptom
+                    in expected_symptoms
+                    if symptom in symptoms
+                )
+
+                mismatch = (
+                    len(expected_symptoms)
+                    - matched
+                )
+
+                score += matched * 5
+                score -= mismatch * 2
 
         # ==========================
         # Cardiac exertional pattern

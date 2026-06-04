@@ -1330,7 +1330,9 @@ class DiagnosisView(APIView):
                     "risk_score",
                     0
                 ),
-
+                medical_features=
+                extracted_features,
+                
                 ai_source=ai_source,
 
                 meditron_used=(

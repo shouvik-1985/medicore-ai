@@ -33,18 +33,42 @@ Format:
 {{
     "primary_symptoms": [],
     "secondary_symptoms": [],
+
     "body_regions": [],
+
     "severity": "",
-    "duration": "",
+
+    "duration": {
+        "value": 0,
+        "unit": ""
+    },
+
+    "symptom_pattern": {
+        "onset": "",
+        "frequency": "",
+        "progression": ""
+    },
+
     "trigger_factors": [],
+    "relief_factors": [],
+
     "risk_flags": [],
-    "possible_emergency": false
+    "red_flags": [],
+    "risk_factors": [],
+
+    "possible_emergency": False
 }}
 
 Rules:
 - Do not diagnose.
-- Do not explain.
-- No markdown.
+- Extract only structured findings.
+- If duration unknown return:
+  {"value":0,"unit":"unknown"}
+- severity ∈ mild, moderate, severe
+- onset ∈ sudden, gradual
+- progression ∈ improving, worsening, stable
+- frequency ∈ constant, intermittent
+- possible_emergency=true ONLY for dangerous symptoms
 - Return valid JSON only.
 """
 
@@ -101,6 +125,24 @@ Rules:
             )
         )
 
+        extracted[
+            "risk_flags"
+        ] = normalize_symptoms(
+            extracted.get(
+                "risk_flags",
+                []
+            )
+        )
+
+        extracted[
+            "red_flags"
+        ] = normalize_symptoms(
+            extracted.get(
+                "red_flags",
+                []
+            )
+        )
+
         return extracted
 
     except Exception as e:
@@ -111,8 +153,24 @@ Rules:
             "secondary_symptoms": [],
             "body_regions": [],
             "severity": "",
-            "duration": "",
+
+            "duration": {
+                "value": 0,
+                "unit": "unknown"
+            },
+
+            "symptom_pattern": {
+                "onset": "",
+                "frequency": "",
+                "progression": ""
+            },
+
             "trigger_factors": [],
+            "relief_factors": [],
+
             "risk_flags": [],
+            "red_flags": [],
+            "risk_factors": [],
+
             "possible_emergency": False
         }
