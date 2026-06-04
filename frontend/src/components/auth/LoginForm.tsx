@@ -31,8 +31,6 @@ const handleSubmit = async (e: React.FormEvent) => {
       username: formData.email,
       password: formData.password,
     });
-    
-    console.log("LOGIN RESPONSE:", res.data);
 
     const { access, refresh, role } = res.data;
 
