@@ -9,6 +9,36 @@ client = OpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
 )
 
+def safe_json_parse(content):
+    """
+    Safely parse LLM JSON.
+    """
+
+    try:
+        return json.loads(content)
+
+    except Exception:
+
+        # Remove markdown
+        content = (
+            content
+            .replace("```json", "")
+            .replace("```", "")
+            .strip()
+        )
+
+        # Try extracting JSON block
+        start = content.find("{")
+        end = content.rfind("}")
+
+        if start != -1 and end != -1:
+            content = content[start:end+1]
+
+        try:
+            return json.loads(content)
+
+        except Exception:
+            return None
 
 def extract_medical_features(symptoms_text):
     """
@@ -38,16 +68,16 @@ Format:
 
     "severity": "",
 
-    "duration": {
+    "duration": {{
         "value": 0,
         "unit": ""
-    },
+    }},
 
-    "symptom_pattern": {
+    "symptom_pattern": {{
         "onset": "",
         "frequency": "",
         "progression": ""
-    },
+    }},
 
     "trigger_factors": [],
     "relief_factors": [],
@@ -55,6 +85,7 @@ Format:
     "risk_flags": [],
     "red_flags": [],
     "risk_factors": [],
+    "negative_symptoms": [],
 
     "possible_emergency": False
 }}
@@ -62,6 +93,16 @@ Format:
 Rules:
 - Do not diagnose.
 - Extract only structured findings.
+- Detect explicitly denied symptoms.
+
+Example:
+"I have chest pain but no fever"
+
+Then:
+primary_symptoms = ["chest pain"]
+negative_symptoms = ["fever"]
+
+- Never place denied symptoms in primary_symptoms.
 - If duration unknown return:
   {"value":0,"unit":"unknown"}
 - severity ∈ mild, moderate, severe
@@ -103,9 +144,14 @@ Rules:
             ""
         ).strip()
 
-        extracted = json.loads(
+        extracted = safe_json_parse(
             content
         )
+
+        if not extracted:
+            raise Exception(
+                "Invalid extractor JSON"
+            )
         # Normalize symptoms
         extracted[
             "primary_symptoms"
@@ -143,6 +189,113 @@ Rules:
             )
         )
 
+        extracted[
+            "negative_symptoms"
+        ] = normalize_symptoms(
+            extracted.get(
+                "negative_symptoms",
+                []
+            )
+        )
+
+        extracted[
+            "trigger_factors"
+        ] = normalize_symptoms(
+            extracted.get(
+                "trigger_factors",
+                []
+            )
+        )
+
+        extracted[
+            "relief_factors"
+        ] = normalize_symptoms(
+            extracted.get(
+                "relief_factors",
+                []
+            )
+        )
+
+        # -------------------------
+        # Duration cleanup
+        # -------------------------
+
+        duration = extracted.get(
+            "duration",
+            {}
+        )
+
+        try:
+            duration_value = int(
+                duration.get(
+                    "value",
+                    0
+                )
+            )
+        except:
+            duration_value = 0
+
+        duration_unit = str(
+            duration.get(
+                "unit",
+                "unknown"
+            )
+        ).lower()
+
+        valid_units = [
+            "hours",
+            "days",
+            "weeks",
+            "months",
+            "years",
+            "unknown"
+        ]
+
+        if duration_unit not in valid_units:
+            duration_unit = "unknown"
+
+        extracted["duration"] = {
+            "value": duration_value,
+            "unit": duration_unit
+        }
+
+        # -------------------------
+        # Safety defaults
+        # -------------------------
+
+        defaults = {
+            "primary_symptoms": [],
+            "secondary_symptoms": [],
+            "body_regions": [],
+            "severity": "",
+
+            "duration": {
+                "value": 0,
+                "unit": "unknown"
+            },
+
+            "symptom_pattern": {
+                "onset": "",
+                "frequency": "",
+                "progression": ""
+            },
+
+            "trigger_factors": [],
+            "relief_factors": [],
+
+            "risk_flags": [],
+            "red_flags": [],
+            "risk_factors": [],
+            "negative_symptoms": [],
+
+            "possible_emergency": False,
+        }
+
+        for key, value in defaults.items():
+
+            if key not in extracted:
+                extracted[key] = value
+
         return extracted
 
     except Exception as e:
@@ -171,6 +324,7 @@ Rules:
             "risk_flags": [],
             "red_flags": [],
             "risk_factors": [],
+            "negative_symptoms": [],
 
             "possible_emergency": False
         }
