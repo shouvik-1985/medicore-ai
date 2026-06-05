@@ -4,6 +4,8 @@ import {
   lazy,
   Suspense
 } from "react";
+import axios from "axios";
+import { API_URL } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -30,15 +32,50 @@ const Index = () => {
   const [currentView, setCurrentView] = useState<'login' | 'register'>('login');
 
   // ✅ Restore auth state
-  useEffect(() => {
-    const token = localStorage.getItem("access_token");
-    const role = localStorage.getItem("user_role") as 'patient' | 'doctor' | 'admin' | null; // ✅ updated
+  // ✅ Wake Railway + Restore auth state
+useEffect(() => {
+  const initializeApp = async () => {
+    try {
+      // Wake Railway backend
+      await axios.get(
+        `${API_URL}/`,
+        {
+          timeout: 15000,
+        }
+      );
+
+      console.log(
+        "Backend awake"
+      );
+    } catch (err) {
+      console.log(
+        "Backend wakeup failed"
+      );
+    }
+
+    // Restore login session
+    const token =
+      localStorage.getItem(
+        "access_token"
+      );
+
+    const role =
+      localStorage.getItem(
+        "user_role"
+      ) as
+        | "patient"
+        | "doctor"
+        | "admin"
+        | null;
 
     if (token && role) {
       setUserRole(role);
       setIsAuthenticated(true);
     }
-  }, []);
+  };
+
+  initializeApp();
+}, []);
 
   // ✅ UPDATED TYPE
   const handleLogin = (role: 'patient' | 'doctor' | 'admin') => {
