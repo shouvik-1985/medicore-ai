@@ -36,16 +36,16 @@ const Index = () => {
 useEffect(() => {
   const initializeApp = async () => {
     try {
-      // Wake Railway backend
+      // Wake Render backend
       await axios.get(
-        `${API_URL}/`,
+        `${API_URL}/api/auth/`,
         {
           timeout: 15000,
         }
       );
 
       console.log(
-        "Backend awake"
+        "Render backend awake"
       );
     } catch (err) {
       console.log(
