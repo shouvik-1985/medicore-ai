@@ -93,6 +93,14 @@ def medical_rule_engine(
         secondary_symptoms
     )
 
+    triggers = [
+        str(t).lower()
+        for t in extracted_data.get(
+            "trigger_factors",
+            []
+        )
+    ]
+
     for symptom in all_symptoms:
         risk_score += (
             RISK_WEIGHTS.get(
@@ -100,14 +108,6 @@ def medical_rule_engine(
                 0
             )
         )
-
-        triggers = [
-            str(t).lower()
-            for t in extracted_data.get(
-                "trigger_factors",
-                []
-            )
-        ]
 
     emergency = extracted_data.get(
         "possible_emergency",
@@ -120,14 +120,6 @@ def medical_rule_engine(
             []
         )
     ]
-    for symptom in all_symptoms:
-
-        risk_score += (
-            RISK_WEIGHTS.get(
-                symptom,
-                0
-            )
-        )
 
     # ==================================
     # Dynamic medical rules
@@ -153,18 +145,6 @@ def medical_rule_engine(
                 []
             )
         ]
-
-        RISK_WEIGHTS = {
-            "chest pain": 25,
-            "shortness of breath": 30,
-            "slurred speech": 40,
-            "facial drooping": 45,
-            "weakness": 20,
-            "high fever": 12,
-            "unconscious": 60,
-            "collapse": 55,
-            "severe headache": 18,
-        }
 
         symptom_match = any(
             symptom in symptoms
