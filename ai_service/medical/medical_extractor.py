@@ -104,7 +104,7 @@ negative_symptoms = ["fever"]
 
 - Never place denied symptoms in primary_symptoms.
 - If duration unknown return:
-  {"value":0,"unit":"unknown"}
+  {{"value":0,"unit":"unknown"}}
 - severity ∈ mild, moderate, severe
 - onset ∈ sudden, gradual
 - progression ∈ improving, worsening, stable
