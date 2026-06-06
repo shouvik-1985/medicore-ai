@@ -59,10 +59,121 @@ RISK_WEIGHTS = {
     "sweating": 12
 }
 
+CLINICAL_PATTERNS = {
 
-def medical_rule_engine(
-    extracted_data
-):
+    "stroke_pattern": {
+        "symptoms": [
+            "slurred speech",
+            "facial drooping",
+            "weakness"
+        ],
+        "risk_score": 40,
+        "alert":
+            "Possible stroke pattern"
+    },
+
+    "acute_coronary_pattern": {
+        "symptoms": [
+            "chest pain",
+            "shortness of breath",
+            "sweating"
+        ],
+        "risk_score": 35,
+        "alert":
+            "Possible cardiac emergency pattern"
+    },
+
+    "pneumonia_pattern": {
+        "symptoms": [
+            "fever",
+            "cough",
+            "shortness of breath"
+        ],
+        "risk_score": 20,
+        "alert":
+            "Respiratory infection pattern"
+    },
+
+    "dehydration_pattern": {
+        "symptoms": [
+            "vomiting",
+            "diarrhea",
+            "dizziness"
+        ],
+        "risk_score": 15,
+        "alert":
+            "Possible dehydration pattern"
+    }
+}
+
+TRIGGER_PATTERNS = {
+
+    "exertional_chest_pain": {
+        "symptoms": [
+            "chest pain"
+        ],
+
+        "triggers": [
+            "walking",
+            "exercise",
+            "climbing stairs",
+            "running",
+            "exertion"
+        ],
+
+        "risk_score": 25,
+
+        "alert":
+            "Exertional cardiac pattern"
+    },
+
+    "rest_chest_pain": {
+        "symptoms": [
+            "chest pain"
+        ],
+
+        "triggers": [
+            "rest"
+        ],
+
+        "risk_score": 30,
+
+        "alert":
+            "Chest pain at rest"
+    },
+
+    "worsening_respiratory": {
+        "symptoms": [
+            "shortness of breath",
+            "cough"
+        ],
+
+        "progression": [
+            "worsening"
+        ],
+
+        "risk_score": 20,
+
+        "alert":
+            "Worsening respiratory pattern"
+    },
+
+    "persistent_fever": {
+        "symptoms": [
+            "fever"
+        ],
+
+        "duration_days": 5,
+
+        "risk_score": 15,
+
+        "alert":
+            "Persistent fever pattern"
+    }
+}
+
+
+def medical_rule_engine(extracted_data):
     """
     Knowledge-driven
     medical risk engine.
@@ -113,6 +224,45 @@ def medical_rule_engine(
         "possible_emergency",
         False
     )
+
+    duration = extracted_data.get(
+        "duration",
+        {}
+    )
+
+    duration_days = int(
+        duration.get(
+            "value",
+            0
+        )
+    )
+
+    duration_unit = str(
+        duration.get(
+            "unit",
+            ""
+        )
+    ).lower()
+
+    if duration_unit == "weeks":
+        duration_days *= 7
+
+    elif duration_unit == "months":
+        duration_days *= 30
+
+    symptom_pattern = (
+        extracted_data.get(
+            "symptom_pattern",
+            {}
+        )
+    )
+
+    progression = str(
+        symptom_pattern.get(
+            "progression",
+            ""
+        )
+    ).lower()
     red_flags = [
         str(r).lower()
         for r in extracted_data.get(
@@ -187,6 +337,142 @@ def medical_rule_engine(
         alerts.append(
             "Clinical red flags detected"
         )
+
+    # ==================================
+    # Clinical pattern detection
+    # ==================================
+
+    for (
+        pattern_name,
+        pattern
+    ) in CLINICAL_PATTERNS.items():
+
+        required_symptoms = [
+            s.lower()
+            for s in pattern.get(
+                "symptoms",
+                []
+            )
+        ]
+
+        matched = sum(
+            1
+            for symptom
+            in required_symptoms
+            if symptom
+            in all_symptoms
+        )
+
+        # Require at least
+        # 2 symptoms match
+        if matched >= 2:
+
+            risk_score += pattern.get(
+                "risk_score",
+                0
+            )
+
+            alert = pattern.get(
+                "alert"
+            )
+
+            if alert:
+                alerts.append(
+                    alert
+                )
+
+    # ==================================
+    # Trigger-aware reasoning
+    # ==================================
+
+    for (
+        pattern_name,
+        pattern
+    ) in TRIGGER_PATTERNS.items():
+
+        required_symptoms = [
+            s.lower()
+            for s in pattern.get(
+                "symptoms",
+                []
+            )
+        ]
+
+        symptom_match = any(
+            symptom
+            in all_symptoms
+            for symptom
+            in required_symptoms
+        )
+
+        if not symptom_match:
+            continue
+
+        trigger_match = True
+
+        if pattern.get(
+            "triggers"
+        ):
+
+            trigger_match = any(
+                trigger in triggers
+                for trigger
+                in pattern.get(
+                    "triggers",
+                    []
+                )
+            )
+
+        progression_match = True
+
+        if pattern.get(
+            "progression"
+        ):
+
+            progression_match = (
+                progression
+                in pattern.get(
+                    "progression",
+                    []
+                )
+            )
+
+        duration_match = True
+
+        if pattern.get(
+            "duration_days"
+        ):
+
+            duration_match = (
+                duration_days
+                >=
+                pattern.get(
+                    "duration_days"
+                )
+            )
+
+        if (
+            symptom_match
+            and trigger_match
+            and progression_match
+            and duration_match
+        ):
+
+            risk_score += (
+                pattern.get(
+                    "risk_score",
+                    0
+                )
+            )
+
+            alert = pattern.get(
+                "alert"
+            )
+
+            if alert:
+                alerts.append(
+                    alert
+                )
 
     # ==================================
     # Emergency escalation
